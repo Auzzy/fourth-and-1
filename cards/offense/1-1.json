@@ -1,0 +1,22 @@
+{
+    "id": "1-1",
+    "name": "\"The Bomb\" Long Pass",
+    "path": [
+        {"type": "run", "start": [13.5, -6]},
+        {"type": "run", "start": [14, -6]},
+        {"type": "run", "start": [15, -5]},
+        {"type": "run", "start": [21, -5]},
+        {"type": "run", "start": [22, -4]},
+        {"type": "run", "start": [21, -3]},
+        {"type": "run", "start": [22, -3]},
+        {"type": "run", "start": [21, -2]},
+        {"type": "run", "start": [22, -2]},
+        {"type": "pass", "start": [22, -1]},
+        {"type": "catch", "start": [11, 21]},
+        {"type": "run", "start": [13, 23]},
+        {"type": "run", "start": [16, 23]},
+        {"type": "run", "start": [15, 24]},
+        {"type": "run", "start": [18, 24]},
+        {"type": "run", "start": [14, 29]}
+    ]
+}

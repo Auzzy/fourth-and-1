@@ -1,0 +1,30 @@
+{
+    "id": "1-2",
+    "name": "Short Pass",
+    "path": [
+        {"type": "run", "start": [13.5, -6]},
+        {"type": "run", "start": [14, -6]},
+        {"type": "run", "start": [16, -4]},
+        {"type": "run", "start": [18, -4]},
+        {"type": "run", "start": [19, -3]},
+        {"type": "run", "start": [19, -2]},
+        {"type": "run", "start": [20, -2]},
+        {"type": "pass", "start": [20, -1]},
+        {"type": "catch", "start": [11, 8]},
+        {"type": "run", "start": [14, 11]},
+        {"type": "run", "start": [18, 11]},
+        {"type": "run", "start": [16, 13]},
+        {"type": "run", "start": [19, 13]},
+        {"type": "run", "start": [19, 14]},
+        {"type": "run", "start": [20, 14]},
+        {"type": "run", "start": [15, 19]},
+        {"type": "run", "start": [14, 19]},
+        {"type": "run", "start": [14, 21]},
+        {"type": "run", "start": [13, 22]},
+        {"type": "run", "start": [14, 23]},
+        {"type": "run", "start": [16, 23]},
+        {"type": "run", "start": [15, 24]},
+        {"type": "run", "start": [15, 27]},
+        {"type": "run", "start": [17, 29]}
+    ]
+}

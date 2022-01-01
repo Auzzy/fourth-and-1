@@ -1,0 +1,205 @@
+<html>
+<body>
+<canvas id="myCanvas" width="420" height="640" style="border:1px solid #000000;">
+</canvas>
+
+<script>
+    // Adapted from: https://stackoverflow.com/a/25840319
+	// Accessed 29 Dec 2021
+	function drawStar(cx, cy, spikes, outerRadius, innerRadius, color) {
+        var rot = Math.PI / 2 * 3;
+        var x = cx;
+        var y = cy;
+        var step = Math.PI / spikes;
+
+	    ctx.save();
+        ctx.beginPath();
+	    ctx.setLineDash([]);
+        ctx.moveTo(cx, cy - outerRadius)
+        for(i = 0; i < spikes; i++) {
+            x = cx + Math.cos(rot) * outerRadius;
+            y = cy + Math.sin(rot) * outerRadius;
+            ctx.lineTo(x, y);
+            rot += step;
+
+            x = cx + Math.cos(rot) * innerRadius;
+            y = cy + Math.sin(rot) * innerRadius;
+            ctx.lineTo(x, y);
+            rot += step;
+        }
+        ctx.lineTo(cx, cy - outerRadius);
+        ctx.closePath();
+        ctx.lineWidth = 5;
+        ctx.strokeStyle = color;
+        ctx.stroke();
+        ctx.fillStyle = color;
+        ctx.fill();
+	    ctx.restore();
+    }
+
+    function ydToPx(yd) {
+        return ydSepPx * yd;
+    }
+
+    function ydToX(yd) {
+        return fieldStartX + fieldWidth * (yd / 27);
+    }
+
+    function ydToY(yd) {
+        return lineOfScrimmagePos + ydToPx(yd);
+    }
+
+    function startToX(coord) {
+        return ydToX(coord[0]);
+    }
+
+    function startToY(coord) {
+        return ydToY(coord[1]);
+    }
+
+    // Draw a line marker every yard, and a thick line every 5 with a label.
+    function drawField() {
+        ctx.beginPath();
+        ctx.lineWidth = 0.5;
+        for (let yd = startYd; yd <= endYd; yd++) {
+            var ydLinePos = lineOfScrimmagePos + yd * ydSepPx;
+
+            if (yd % 5 == 0) {
+                ctx.stroke();
+                ctx.beginPath();
+
+                if (yd == 0) {
+                    var ydLineWidth = drawYdLine("LS", lineOfScrimmagePos);
+                    ctx.fillRect(fieldStartX + ydLineWidth, lineOfScrimmagePos - 2, fieldWidth - 2 * ydLineWidth, 4);
+                } else {
+                    ctx.lineWidth = 1.5;
+
+                    var ydLineWidth = drawYdLine(yd, ydLinePos);
+
+                    ctx.moveTo(fieldStartX + ydLineWidth, ydLinePos);
+                    ctx.lineTo(fieldEndX - ydLineWidth, ydLinePos);
+
+                    ctx.stroke();
+                }
+
+                ctx.beginPath();
+                ctx.lineWidth = 0.5;
+            } else {
+                ctx.moveTo(fieldStartX, ydLinePos);
+                ctx.lineTo(fieldEndX, ydLinePos);
+            }
+        }
+        ctx.stroke();
+    }
+
+    function drawYdLine(yd, yPos) {
+        var ydLineBuffer = 5;
+        var ydLine = yd.toString();
+        var ydLineWidth = ctx.measureText(ydLine).width + ydLineBuffer;
+
+        ctx.textBaseline = "middle";
+        ctx.font = "bold";
+        ctx.fillText(ydLine, fieldStartX, yPos);
+        ctx.fillText(ydLine, fieldEndX - ydLineWidth + ydLineBuffer, yPos);
+
+        return ydLineWidth;
+    }
+
+    function drawOffense(cardJson) {
+        drawBallPath(cardJson["path"]);
+    }
+
+    function drawBallPath(pathJson) {
+        ctx.beginPath();
+
+        ctx.lineWidth = 5;
+        ctx.lineJoin = "miter";
+        ctx.lineCap = "butt";
+
+        var lastType = null;
+        pathJson.forEach(node => {
+            if (lastType === null || lastType !== node["type"]) {
+                ctx.stroke();
+                ctx.beginPath();
+
+                if (node["type"] === "pass" || node["type"] === "lateral") {
+                    ctx.setLineDash([6, 5]);
+                } else if (node["type"] === "run") {
+                    ctx.setLineDash([]);
+                } else if (node["type"] === "catch") {
+                    ctx.setLineDash([]);
+                    drawStar(startToX(node["start"]) + 1, startToY(node["start"]) - 1, 5, 4, 2, "red");
+                    // To make sure the star isn't covered.
+                    ctx.globalCompositeOperation = "destination-over";
+                }
+
+                ctx.moveTo(ydToX(node["start"][0]), ydToY(node["start"][1]));
+            }
+
+            ctx.lineTo(startToX(node["end"]), startToY(node["end"]));
+
+            lastType = node["type"];
+        });
+
+        ctx.stroke();
+    }
+
+    function drawDefense(cardJson) {
+        var defenderSize = 1;
+        var radiusYd = defenderSize / 2;
+        var defenderSizePx = ydToPx(defenderSize);
+
+        ctx.fillStyle = "gray";
+        cardJson["players"]["tacklers"].forEach(coord => {
+            ctx.beginPath();
+            ctx.fillRect(ydToX(coord[0] - radiusYd), ydToY(coord[1] - radiusYd), defenderSizePx, defenderSizePx);
+            /*
+            // Diamond
+            ctx.moveTo(ydToX(coord[0] - radiusYd), startToY(coord));
+            ctx.lineTo(startToX(coord), ydToY(coord[1] - radiusYd));
+            ctx.lineTo(ydToX(coord[0] + radiusYd), startToY(coord));
+            ctx.lineTo(startToX(coord), ydToY(coord[1] + radiusYd));
+            ctx.closePath();
+            ctx.fill();
+            */
+        });
+
+        ctx.fillStyle = "darkblue";
+        cardJson["players"]["fumblers"].forEach(coord => {
+            ctx.beginPath();
+            // ctx.fillRect(ydToX(coord[0] - radiusYd), ydToY(coord[1] - radiusYd), defenderSizePx, defenderSizePx);
+            ctx.arc(startToX(coord), startToY(coord), ydToPx(radiusYd), 0, 2 * Math.PI);
+            ctx.fill();
+        });
+    }
+
+    // plays are 27 yards wide
+
+    var c = document.getElementById("myCanvas");
+    var ctx = c.getContext("2d");
+
+    var originY = 100;
+    var cardWidth = c.width;
+    var ydSepPx = 14;
+    var fieldWidth = cardWidth * 0.90;
+    var border = cardWidth - fieldWidth;
+    var fieldStartX = border / 2;
+    var fieldEndX = cardWidth - (border / 2);
+    var startYd = -7;
+    var endYd = 29;
+    var lineOfScrimmagePos = originY + Math.abs(startYd) * ydSepPx;
+
+    var offenseCardJson = "";//{{OFFENSE_CARD_JSON}}
+    var defenseCardJson = "";//{{DEFENSE_CARD_JSON}}
+
+    drawField();
+    if (offenseCardJson !== "") {
+        drawOffense(offenseCardJson);
+    }
+    if (defenseCardJson !== "") {
+        drawDefense(defenseCardJson);
+    }
+</script>
+
+</body>
+</html>

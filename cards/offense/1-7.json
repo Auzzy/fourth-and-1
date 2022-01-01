@@ -1,0 +1,25 @@
+{
+    "id": "1-7",
+    "name": "Long Pass Right",
+    "path": [
+        {"type": "run", "start": [13.5, -6]},
+        {"type": "run", "start": [13, -6]},
+        {"type": "run", "start": [13, -5]},
+        {"type": "run", "start": [9, -5]},
+        {"type": "run", "start": [9, -4]},
+        {"type": "run", "start": [8, -3]},
+        {"type": "run", "start": [8, -2]},
+        {"type": "run", "start": [6, -2]},
+        {"type": "run", "start": [5, -3]},
+        {"type": "run", "start": [4, -3]},
+        {"type": "pass", "start": [3, -2]},
+        {"type": "catch", "start": [23, 18]},
+        {"type": "run", "start": [18, 23]},
+        {"type": "run", "start": [19, 23]},
+        {"type": "run", "start": [18, 24]},
+        {"type": "run", "start": [19, 24]},
+        {"type": "run", "start": [17, 26]},
+        {"type": "run", "start": [19, 26]},
+        {"type": "run", "start": [16, 29]}
+    ]
+}
