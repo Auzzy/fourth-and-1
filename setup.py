@@ -6,6 +6,7 @@ setup(
     author="Austin Noto-Moniz",
     author_email="mathfreak65@gmail.com",
     packages=find_packages(),
+    package_data={"fourthand1": ["data/*", "data/cards/*", "data/cards/offense/*", "data/cards/defense/*"]},
     python_requires=">=3.6"
 )
 
