@@ -67,7 +67,6 @@ class _EventFactory:
         self.kwargs = kwargs
 
     def create(self, from_ydline):
-        print(self.CLS)
         return self.CLS.create(from_ydline + self.play_yds, *self.args, **self.kwargs)
 
     @property
@@ -318,7 +317,7 @@ class Interception(_Event):
         if return_yds > return_from:
             returned = Touchdown.create()
 
-        return cls(returned.yds, returned, penalty)
+        return cls(return_yds, returned, penalty)
 
     def __init__(self, yds, returned, penalty=None):
         super().__init__(yds)
