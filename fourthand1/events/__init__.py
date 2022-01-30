@@ -5,6 +5,12 @@ from fourthand1.cards.defense import DefenseCard, Fumbler, Tackler
 from fourthand1.cards.offense import OffenseCard, Catch, Lateral, Pass, Run
 
 
+def _ydline_str(ydline):
+    if ydline == 50:
+        return "midfield"
+    else:
+        return f"their own {ydline}" if ydline < 50 else f"the opponents' {100 - ydline}"
+
 def roll_dice():
     return sum(random.randint(1, 6) for k in range(3))
 
@@ -93,6 +99,9 @@ class Incomplete(_Event):
     def apply(self, game):
         game.queue_next_play()
 
+    def __str__(self):
+        return "Batted down. Incomplete."
+
 class Touchdown(_Event):
     TYPE = "touchdown"
 
@@ -113,6 +122,9 @@ class Touchdown(_Event):
         self.pat.apply(game)
 
         game.queue_kickoff()
+
+    def __str__(self):
+        return "Touchdown!"
 
 class Penalty(_Event):
     TYPE = "penalty"
@@ -211,12 +223,19 @@ class Fumble(_Event):
         if self.result:
             self.result.apply(game)
 
+    def __str__(self):
+        return f"Fumble! Recovered by the {self.recovered_by}."
+
 class SpecialTeamsFumble(Fumble):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         if self.recovered_by in ("offense", "defense"):
             self.recovered_by = "kicking" if self.recovered_by == "offense" else "receiving"
+    
+    def __str__(self):
+        return f"Fumble! Recovered by the {self.recovered_by} team."
+
 
 class Touchback(_Event):
     TYPE = "touchback"
@@ -230,6 +249,9 @@ class Touchback(_Event):
 
         game.queue_drive()
 
+    def __str__(self):
+        return "Touchback."
+
 class GoalLine(_Event):
     TYPE = "goal line"
 
@@ -241,6 +263,9 @@ class FairCatch(_Event):
 
     def apply(self, game):
         game.queue_drive()
+
+    def __str__(self):
+        return "A fair catch is called."
 
 class OutOfBounds(_Event):
     TYPE = "out of bounds"
@@ -256,6 +281,9 @@ class OutOfBounds(_Event):
         game.ball_carrier = game.receiving
 
         game.queue_drive()
+
+    def __str__(self):
+        return "Out of bounds."
 
 class Interception(_Event):
     TYPE = "interception"
@@ -312,6 +340,9 @@ class Interception(_Event):
         game.queue_drive()
 
         self.returned.apply(game)
+
+    def __str__(self):
+        return f"Intercepted! Returned {self.yds} yards."
 
 class KickOff(_InitialEvent):
     TYPE = "kick-off"
@@ -378,6 +409,10 @@ class KickOff(_InitialEvent):
         if self.returned:
             self.returned.apply(game)
 
+    def __str__(self):
+        end_ydline = self.from_ydline + self.yds
+        return f"Kicked off from {_ydline_str(self.from_ydline)} yard line. Travels {self.yds} yards to {_ydline_str(end_ydline)}"
+
 class KickOffReturn(_Event):
     TYPE = "kick-off return"
 
@@ -433,6 +468,9 @@ class KickOffReturn(_Event):
 
         self.returned.apply(game)
 
+    def __str__(self):
+        return f"Returned {self.yds} yards."
+
 class OnSideKick(_InitialEvent):
     TYPE = "on-side kick"
 
@@ -480,14 +518,18 @@ class OnSideKick(_InitialEvent):
 
         self.result.apply(game)
 
+    def __str__(self):
+        end_ydline = self.from_ydline + self.yds
+        return f"Onside kick from {_ydline_str(self.from_ydline)}. Travels {self.yds} to {_ydline_str( end_ydline)}."
+
 class BlockedKick(_Event):
     TYPE = "blocked kick"
 
-    # Note: The table makes very little sense. Whoever receovers the ball loses
-    # a bunch of yards. And despite the rules implying the offense could get a
-    # first down, they only seem to recover when they lose yardage.
-    # Maybe the intention is the yards are supposed to be read from the
-    # defense's perspective? But that means if your kick is blocked and you
+    # Note: This table makes little sense. No matter who recovers the ball,
+    # it travels in the same direction: behind the line of scrimmage (from the
+    # offensive perspective). And yet the rules imply the offense could get a
+    # first down. Maybe the intention is the yards are supposed to be read from
+    # the defense's perspective? But that means if your kick is blocked and you
     # recover, you always advance the ball...
     YDS = {
         3: 20,
@@ -550,6 +592,10 @@ class BlockedKick(_Event):
 
         if self.result:
             self.result.apply(game)
+
+    def __str__(self):
+        yddir = "gain" if self.yds > 0 else "loss"
+        return f"Blocked! Recovered by the {self.recovered_by} team for a {abs(self.yds)} {yddir}."
 
 class PuntReturn(_Event):
     TYPE = "punt return"
@@ -616,6 +662,9 @@ class PuntReturn(_Event):
         game.queue_drive()
 
         self.returned.apply(game)
+
+    def __str__(self):
+        return f"Returned {self.yds}."
 
 class Punt(_InitialEvent):
     TYPE = "punt"
@@ -706,6 +755,10 @@ class Punt(_InitialEvent):
         game.ydline = self.from_ydline + self.yds
         self.kick_result.apply(game)
 
+    def __str__(self):
+        end_ydline = self.from_ydline + self.yds
+        return f"Punted from {_ydline_str(self.from_ydline)}. Travels {self.yds} to {_ydline_str( end_ydline)}."
+
 class FieldGoal(_InitialEvent):
     TYPE = "field goal"
 
@@ -722,8 +775,7 @@ class FieldGoal(_InitialEvent):
     BLOCKED_ROLL = (14, )
     MIN_YDLINE = min(min(ydlines) for ydlines in PROB)
 
-    # I've seen pictures of another printing of the 77 edition with this chart.
-    # Note it's blocked on (15, 16) instead.
+    # I've seen pictures of another printing of the '77 edition with this chart.
     ALT_PROB = {
         (95, 100): [(3, 14)],
         (90, 94): [(3, 12), (14, ), (17, )],
@@ -772,6 +824,9 @@ class FieldGoal(_InitialEvent):
     def apply(self, game):
         self.result.apply(game)
 
+    def __str__(self):
+        return "Attempting a {self.yds} yard field goal."
+
 class FieldGoalResult(_Event):
     TYPE = "field goal result"
 
@@ -797,6 +852,9 @@ class FieldGoalResult(_Event):
             game.ydline = min(game.ydline, 80)
             game.queue_drive()
 
+    def __str__(self):
+        return "It's good!" if self.made else "Missed! Turnover on downs."
+
 class PATResult(_Event):
     TYPE = "point after"
 
@@ -821,6 +879,9 @@ class PATResult(_Event):
 
         game.setup_kickoff()
 
+    def __str__(self):
+        return f"Point after is {'good.' if self.made else 'no good!'}"
+
 class Safety(_Event):
     TYPE = "safety"
 
@@ -829,7 +890,10 @@ class Safety(_Event):
 
         game.queue_safety_punt()
 
-class SafetyPunt(_Event):
+    def __str__(self):
+        return "Safety."
+
+class SafetyPunt(Punt):
     TYPE = "safety punt"
 
     # There's no safety punt table, so I modified the in-bounds punt table.
@@ -856,7 +920,11 @@ class SafetyPunt(_Event):
 
     @classmethod
     def create(cls, kick_from):
-        return Punt.create(kick_from, SafetyPunt.YDS, PuntReturn)
+        return super().create(kick_from, SafetyPunt.YDS, PuntReturn)
+
+    def __str__(self):
+        end_ydline = self.from_ydline + self.yds
+        return f"Safety punt from {_ydline_str(self.from_ydline)}. Travels {self.yds} to {_ydline_str( end_ydline)}."
 
 class PlayResult(_InitialEvent):
     TYPE = "play from scrimmage"
@@ -899,6 +967,13 @@ class PlayResult(_InitialEvent):
     def apply(self, game):
         game.ydline = self.from_ydline + self.yds
         self.result.apply(game)
+
+    def __str__(self):
+        if self.yds == 0:
+            yds_str = "no gain"
+        else:
+            yds_str = f"a {self.yds} gain" if self.yds > 0 else f"a {abs(self.yds)} loss"
+        return f"Play from scrimmage at {_ydline_str(self.from_ydline)} goes for {yds_str}."
 
 
 
