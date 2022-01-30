@@ -18,6 +18,7 @@ class Game:
         self.down = None
         self.first_down_ydline = None
 
+        self._phase = "coin-flip"
         self._setup_queue = []
         self._playnum = 0
         self._quarter = 1
@@ -27,6 +28,8 @@ class Game:
         self.ball_carrier = teams[random.randint(0, 1)]
         self.setup_kickoff()
 
+        self._phase = "coin-flip-result"
+
     def role_to_team(self, role):
         return getattr(self, role)
 
@@ -34,6 +37,37 @@ class Game:
         if team is None:
             return None
         return self.team1 if team == self.team2 else self.team2
+
+    @property
+    def phase(self):
+        return self._phase
+
+    @property
+    def actions(self):
+        if self.phase == "coin-flip":
+            return ({"name": "coin_flip", "display": "Coin Toss"}, )
+        elif self.phase in ("coin-flip-result", "halftime", "kickoff"):
+            return (
+                {"name": "kickoff", "display": "Regular Kick-Off"},
+                {"name": "onside", "display": "Onside Kick"}
+            )
+        elif self.phase == "safety":
+            return ({"name": "safety_punt", "display": "Safety Punt"})
+        elif self.phase == "play-selection":
+            actions = [
+                {"name": "play", "display": "Play"},
+                {"name": "punt_in_bounds", "display": "Punt (In Bounds)"},
+                {"name": "punt_out_of_bounds", "display": "Punt (Out Of Bounds)"}
+            ]
+            if self.ydline >= FieldGoal.MIN_YDLINE:
+                actions.append({"name": "field_goal", "display": "Field Goal"})
+            return tuple(actions)
+        else:
+            return tuple()
+
+    @property
+    def action_names(self):
+        return {action["name"] for action in self.actions}
 
     @property
     def ball_carrier(self):
@@ -80,12 +114,28 @@ class Game:
     def defense(self, team):
         self._defense, self._offense = team, self.opponent(team)
 
-    def _run(self, create_event):
+    def _advance_playcounter(self):
         self._playnum += 1
+        if self._playnum > self.plays_per_quarter:
+            self._playnum = 1
+            self._quarter += 1
+            if self._quarter == 3:
+                self.setup_kickoff()
+                self._phase = "halftime"
+            elif self._quarter == 5:
+                if self.team1.score == self.team2.score:
+                    self._phase = "overtime"
+                else:
+                    self._phase = "gameover"
 
+    def _run(self, create_event):
         events = create_event(self.ydline)
         events.apply(self)
+
         self._resolve_queue()
+
+        self._advance_playcounter()
+
         return events.resolve()
 
     def kickoff(self):
@@ -111,6 +161,8 @@ class Game:
 
 
     def setup_kickoff(self):
+        self._phase = "kickoff"
+
         if self.ball_carrier:
             self.kicking = self.ball_carrier
         self.offense = None
@@ -119,6 +171,8 @@ class Game:
         self.ydline = 40
 
     def setup_safety_punt(self):
+        self._phase = "safety"
+
         self.kicking = self.ball_carrier
         self.offense = None
         self.down = None
@@ -126,6 +180,8 @@ class Game:
         self.ydline = 20
 
     def setup_drive(self):
+        self._phase = "play-selection"
+
         # The math is easier if I internally treat the field as being lined
         # from 0 to 100, with 0 being the offense's endzone.
         if self.kicking:
@@ -139,6 +195,8 @@ class Game:
         self.first_down_ydline = self.ydline + 10
 
     def setup_next_play(self):
+        self._phase = "play-selection"
+
         if self.ydline >= self.first_down_ydline:
             self.down = 1
             self.first_down_ydline = self.ydline + 10

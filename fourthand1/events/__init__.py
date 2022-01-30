@@ -232,7 +232,7 @@ class SpecialTeamsFumble(Fumble):
 
         if self.recovered_by in ("offense", "defense"):
             self.recovered_by = "kicking" if self.recovered_by == "offense" else "receiving"
-    
+
     def __str__(self):
         return f"Fumble! Recovered by the {self.recovered_by} team."
 
