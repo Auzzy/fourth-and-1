@@ -5,11 +5,13 @@ from fourthand1.cards.defense import DefenseCard, Fumbler, Tackler
 from fourthand1.cards.offense import OffenseCard, Catch, Lateral, Pass, Run
 
 
-def _ydline_str(ydline):
-    if ydline == 50:
+def _ydline_str(absydline):
+    if absydline == 50:
         return "midfield"
     else:
-        return f"their own {ydline}" if ydline < 50 else f"the opponents' {100 - ydline}"
+        ydline = absydline if absydline < 50 else (100 - absydline)
+        display_ydline = "goal line" if ydline == 0 else ydline
+        return f"their own {display_ydline}" if absydline < 50 else f"the opponent's {display_ydline}"
 
 def roll_dice():
     return sum(random.randint(1, 6) for k in range(3))
@@ -410,7 +412,7 @@ class KickOff(_InitialEvent):
 
     def __str__(self):
         end_ydline = self.from_ydline + self.yds
-        return f"Kicked off from {_ydline_str(self.from_ydline)} yard line. Travels {self.yds} yards to {_ydline_str(end_ydline)}"
+        return f"Kicked off from {_ydline_str(self.from_ydline)} yard line. Travels {self.yds} yards to {_ydline_str(end_ydline)}."
 
 class KickOffReturn(_Event):
     TYPE = "kick-off return"

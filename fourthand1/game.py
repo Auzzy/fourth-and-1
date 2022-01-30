@@ -46,7 +46,7 @@ class Game:
     def actions(self):
         if self.phase == "coin-flip":
             return ({"name": "coin_flip", "display": "Coin Toss"}, )
-        elif self.phase in ("coin-flip-result", "halftime", "kickoff"):
+        elif self.phase in ("coin-flip-result", "halftime", "kicking"):
             return (
                 {"name": "kickoff", "display": "Regular Kick-Off"},
                 {"name": "onside", "display": "Onside Kick"}
