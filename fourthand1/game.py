@@ -140,6 +140,7 @@ class Game:
 
     def setup_next_play(self):
         if self.ydline >= self.first_down_ydline:
+            self.down = 1
             self.first_down_ydline = self.ydline + 10
         else:
             # Turnover on downs.
