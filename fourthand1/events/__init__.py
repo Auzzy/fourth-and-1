@@ -973,7 +973,7 @@ class PlayResult(_InitialEvent):
         if self.yds == 0:
             yds_str = "no gain"
         else:
-            yds_str = f"a {self.yds} gain" if self.yds > 0 else f"a {abs(self.yds)} loss"
+            yds_str = f"a {self.yds} yard gain" if self.yds > 0 else f"a {abs(self.yds)} yard loss"
         return f"Play from scrimmage at {_ydline_str(self.from_ydline)} goes for {yds_str}."
 
 
