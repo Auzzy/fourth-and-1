@@ -846,7 +846,7 @@ class FieldGoalResult(_Event):
         if self.made:
             game.ball_carrier.score += 3
 
-            game.setup_kickoff()
+            game.queue_kickoff()
         else:
             # A missed (not blocked) FG is a turnover. If the FG was taken
             # inside the opponent's 20, then it comes out to the 20.
@@ -878,7 +878,7 @@ class PATResult(_Event):
         if self.made:
             game.ball_carrier.score += 1
 
-        game.setup_kickoff()
+        game.queue_kickoff()
 
     def __str__(self):
         return f"Point after is {'good.' if self.made else 'no good!'}"
