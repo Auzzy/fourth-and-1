@@ -521,7 +521,7 @@ class OnSideKick(_InitialEvent):
 
     def __str__(self):
         end_ydline = self.from_ydline + self.yds
-        return f"Onside kick from {_ydline_str(self.from_ydline)}. Travels {self.yds} to {_ydline_str( end_ydline)}."
+        return f"Onside kick from {_ydline_str(self.from_ydline)}. Travels {self.yds} yards to {_ydline_str( end_ydline)}."
 
 class BlockedKick(_Event):
     TYPE = "blocked kick"
@@ -758,7 +758,7 @@ class Punt(_InitialEvent):
 
     def __str__(self):
         end_ydline = self.from_ydline + self.yds
-        return f"Punted from {_ydline_str(self.from_ydline)}. Travels {self.yds} to {_ydline_str( end_ydline)}."
+        return f"Punted from {_ydline_str(self.from_ydline)}. Travels {self.yds} yards to {_ydline_str( end_ydline)}."
 
 class FieldGoal(_InitialEvent):
     TYPE = "field goal"
@@ -925,7 +925,7 @@ class SafetyPunt(Punt):
 
     def __str__(self):
         end_ydline = self.from_ydline + self.yds
-        return f"Safety punt from {_ydline_str(self.from_ydline)}. Travels {self.yds} to {_ydline_str( end_ydline)}."
+        return f"Safety punt from {_ydline_str(self.from_ydline)}. Travels {self.yds} yards to {_ydline_str( end_ydline)}."
 
 class PlayResult(_InitialEvent):
     TYPE = "play from scrimmage"
