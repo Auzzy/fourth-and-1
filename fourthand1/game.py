@@ -163,8 +163,7 @@ class Game:
     def setup_kickoff(self):
         self._phase = "kickoff"
 
-        if self.ball_carrier:
-            self.kicking = self.ball_carrier
+        self.kicking = self.ball_carrier
         self.offense = None
         self.down = None
         self.first_down_ydline = None

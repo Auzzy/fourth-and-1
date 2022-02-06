@@ -245,7 +245,7 @@ class Touchback(_Event):
         super().__init__()
 
     def apply(self, game):
-        game.ball_carrier = game.receiving
+        game.ball_carrier = game.receiving or game.defense
         game.ydline = 80
 
         game.queue_drive()
@@ -263,6 +263,8 @@ class FairCatch(_Event):
     TYPE = "fair catch"
 
     def apply(self, game):
+        game.ball_carrier = game.receiving
+
         game.queue_drive()
 
     def __str__(self):
@@ -752,6 +754,7 @@ class Punt(_InitialEvent):
         return [self] + self.kick_result.resolve()
 
     def apply(self, game):
+        game.kicking = game.offense
         game.ball_carrier = game.kicking
         game.ydline = self.from_ydline + self.yds
         self.kick_result.apply(game)
@@ -823,10 +826,12 @@ class FieldGoal(_InitialEvent):
         return [self] + self.result.resolve()
 
     def apply(self, game):
+        game.kicking = game.offense
+
         self.result.apply(game)
 
     def __str__(self):
-        return "Attempting a {self.yds} yard field goal."
+        return f"Attempting a {100 - self.from_ydline} yard field goal."
 
 class FieldGoalResult(_Event):
     TYPE = "field goal result"
@@ -850,6 +855,7 @@ class FieldGoalResult(_Event):
         else:
             # A missed (not blocked) FG is a turnover. If the FG was taken
             # inside the opponent's 20, then it comes out to the 20.
+            game.ball_carrier = game.receiving
             game.ydline = min(game.ydline, 80)
             game.queue_drive()
 
